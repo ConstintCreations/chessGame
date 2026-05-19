@@ -3,7 +3,7 @@ import { Board } from "./components/types";
 
 export default function Home() {
 
-  const board = new Board(8);
+  const board = new Board();
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-600 font-sans dark:bg-zinc-600">
