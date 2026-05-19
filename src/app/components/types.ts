@@ -26,10 +26,10 @@ export class Square {
 }
 
 export class Board {
-    board: Square[];
+    squares: Square[];
 
     constructor() {
-        this.board = [];
+        this.squares = [];
 
         for (let y = 0; y < 8; y++) {
             for (let x = 0; x < 8; x++) {
@@ -72,16 +72,16 @@ export class Board {
                     piece = new Piece(pieceType, pieceColor);
                 }
 
-                this.board.push(new Square(x, y, piece, (x+y)%2 == 1 ? SquareColor.Light : SquareColor.Dark));
+                this.squares.push(new Square(x, y, piece, (x+y)%2 == 1 ? SquareColor.Light : SquareColor.Dark));
             }
         }
 
-        console.log(this.board);
+        console.log(this.squares);
     }
 
     getSquareByIndex(index:number): Square | null {
         index = Math.round(index);
         if (index >= 64) return null;
-        return this.board[index];
+        return this.squares[index];
     }
 }
