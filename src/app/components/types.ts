@@ -75,13 +75,19 @@ export class Board {
                 this.squares.push(new Square(x, y, piece, (x+y)%2 == 1 ? SquareColor.Light : SquareColor.Dark));
             }
         }
-
-        console.log(this.squares);
     }
 
     getSquareByIndex(index:number): Square | null {
         index = Math.round(index);
         if (index >= 64) return null;
         return this.squares[index];
+    }
+
+    getSquareByIndexBackwards(index:number): Square | null {
+        index = Math.round(index);
+        if (index >= 64) return null;
+        const x = index%8;
+        const y = (64-(8*Math.floor(index/8)))-8;
+        return this.squares[x+y];
     }
 }
