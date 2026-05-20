@@ -181,6 +181,10 @@ export class Board {
 
             //Todo: En Passant
             //Todo: Check Checking
+        } else {
+            for (const square of this.squares) {
+                validSquares.push(square);
+            }
         }
 
         return validSquares;

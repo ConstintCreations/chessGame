@@ -9,6 +9,11 @@ export default function Home() {
   function handleSquareClick(e:any, index:number) {
     console.log("click: ", board.getSquareByIndexBackwards(index));
     if (board.selectedSquare) {
+      if (board.selectedSquare == board.getSquareByIndexBackwards(index)) {
+        board.clearSelectedSquare();
+        setBoard(Object.assign(new Board(), board));
+        return;
+      }
       const wasMoved = board.movePieceFromSelectedSquareTo(board.getSquareByIndexBackwards(index));
       if (wasMoved) {
         console.log("Selected: ", board.selectedSquare);
@@ -21,8 +26,9 @@ export default function Home() {
     }
 
     const targetSquare = board.getSquareByIndexBackwards(index);
-    if (targetSquare && targetSquare?.piece) {
+    if (targetSquare) {
       board.selectSquare(targetSquare);
+      setBoard(Object.assign(new Board(), board));
       console.log("Selected: ", board.selectedSquare);
     }
     
@@ -33,7 +39,7 @@ export default function Home() {
       <div className="grid gap-0" style={{ gridTemplateColumns: "repeat(8, 60px)", gridTemplateRows: "repeat(8, 60px)" }}>
 
         {Array.from({ length: 64 }).map((_, index) => (
-          <button key={index} onClick={(e) => {handleSquareClick(e, index)}} className={`w-[60px] h-[60px] grid place-items-center font-bold ${board.getSquareByIndexBackwards(index)?.color == SquareColor.Light ? "bg-white text-black" : "bg-green-700 text-white" }`}>
+          <button key={index} onClick={(e) => {handleSquareClick(e, index)}} className={`w-[60px] h-[60px] grid place-items-center font-bold ${board.selectedSquare && board.getSquareByIndexBackwards(index) && board.selectedSquare == board.getSquareByIndexBackwards(index) ? "bg-orange-400" : board.getSquareByIndexBackwards(index)?.color == SquareColor.Light ? "bg-white text-black" : "bg-green-700 text-white" }`}>
             {!board.getSquareByIndexBackwards(index)?.piece ? "" : <img src={`./${board.getSquareByIndexBackwards(index)?.piece?.pieceType.toLowerCase()}-${board.getSquareByIndexBackwards(index)?.piece?.pieceColor.toLowerCase()}.png`}></img>}
           </button>
         ))}
