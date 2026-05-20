@@ -7,6 +7,33 @@ export enum PieceType {
     Queen = "Queen"
 }
 
+export interface Position {
+    x: number,
+    y: number
+}
+
+export enum Direction {
+    Up = "Up",
+    UpLeft = "UpLeft",
+    Left = "Left",
+    DownLeft = "DownLeft",
+    Down = "Down",
+    DownRight = "DownRight",
+    Right = "Right",
+    UpRight = "UpRight"
+}
+
+export const DirectionVector: Record<Direction, Position> = {
+    [Direction.Up]: {x:0, y:-1},
+    [Direction.UpLeft]: {x:-1, y:-1},
+    [Direction.UpRight]: {x:1, y:-1},
+    [Direction.Left]: {x:-1, y:0},
+    [Direction.Right]: {x:1, y:0},
+    [Direction.Down]: {x:0, y:1},
+    [Direction.DownLeft]: {x:-1, y:1},
+    [Direction.DownRight]: {x:1, y:1},
+} 
+
 export enum SquareColor {
     Light = "Light",
     Dark = "Dark"
@@ -18,7 +45,11 @@ export enum PieceColor {
 }
 
 export class Piece {
-    constructor (public pieceType: PieceType, public pieceColor: PieceColor) {}
+    constructor (public pieceType: PieceType, public pieceColor: PieceColor, public validSquares: Square[] | null, public hasMoved: boolean) {
+        if (validSquares == null && pieceType) {
+            validSquares = [];
+        }
+    }
 }
 
 export class Square {
@@ -56,22 +87,14 @@ export class Board {
                     } else if (x == 2 || x == 5) {
                         pieceType = PieceType.Bishop;
                     } else if (x == 3) {
-                        if (y == 0) {
-                            pieceType = PieceType.Queen;
-                        } else if (y == 7) {
-                            pieceType = PieceType.King;
-                        }
+                        pieceType = PieceType.Queen;
                     } else if (x == 4) {
-                        if (y == 0) {
-                            pieceType = PieceType.King;
-                        } else if (y == 7) {
-                            pieceType = PieceType.Queen;
-                        }
+                        pieceType = PieceType.King;
                     }
                 }
 
                 if (pieceType && pieceColor) {
-                    piece = new Piece(pieceType, pieceColor);
+                    piece = new Piece(pieceType, pieceColor, null, false);
                 }
 
                 this.squares.push(new Square(x, y, piece, (x+y)%2 == 1 ? SquareColor.Light : SquareColor.Dark));
@@ -99,6 +122,9 @@ export class Board {
     }
 
     selectSquare(square: Square) {
+        if (square.piece) {
+            square.piece.validSquares = this.getValidSquares(square);
+        }
         this.selectedSquare = square;
     }
 
@@ -106,7 +132,7 @@ export class Board {
         this.selectedSquare = null;
     }
 
-    movePieceFromSelectedSquareTo(targetSquare: Square | null):boolean {
+    movePieceFromSelectedSquareTo(targetSquare: Square | null, validateMovement: boolean = true):boolean {
         if (!targetSquare) return false;
         if (this.selectedSquare?.piece && this.selectedSquare?.piece.pieceColor == targetSquare?.piece?.pieceColor) {
             return false;
@@ -115,9 +141,48 @@ export class Board {
         const selectedPiece = this.selectedSquare?.piece;
         
         if (!this.selectedSquare || !selectedPiece) return false;
+
+        if (validateMovement) {
+            if (selectedPiece.validSquares) {
+                let foundTargetSquare = false;
+                for (const square of selectedPiece.validSquares) {
+                    if (targetSquare == square) {
+                        foundTargetSquare = true;
+                    }
+                }
+                if (!foundTargetSquare) return false;
+            } else {
+                return false;
+            }
+        }
         targetSquare.piece = selectedPiece;
         this.selectedSquare.piece = null;
 
+        targetSquare.piece.hasMoved = true;
+
         return true;
+    }
+
+    getValidSquares(targetSquare: Square): Square[] | null { 
+        if (!targetSquare || !targetSquare.piece) return null;
+        const validSquares:Square[] = [];
+
+        if(targetSquare.piece.pieceType == PieceType.Pawn) {
+             const frontSquare = targetSquare.piece.pieceColor == PieceColor.Dark ? this.getSquare(targetSquare.x + DirectionVector[Direction.Up].x, targetSquare.y + DirectionVector[Direction.Up].y) : this.getSquare(targetSquare.x + DirectionVector[Direction.Down].x, targetSquare.y + DirectionVector[Direction.Down].y);
+             if (frontSquare && frontSquare.piece == null) {
+                validSquares.push(frontSquare);
+                const doubleFrontSquare = targetSquare.piece.pieceColor == PieceColor.Dark ? this.getSquare(frontSquare.x + DirectionVector[Direction.Up].x, frontSquare.y + DirectionVector[Direction.Up].y) : this.getSquare(frontSquare.x + DirectionVector[Direction.Down].x, frontSquare.y + DirectionVector[Direction.Down].y);
+                if (targetSquare.piece.hasMoved == false && doubleFrontSquare && doubleFrontSquare.piece == null) validSquares.push(doubleFrontSquare);
+            }
+             const frontLeftSquare = targetSquare.piece.pieceColor == PieceColor.Dark ? this.getSquare(targetSquare.x + DirectionVector[Direction.UpLeft].x, targetSquare.y + DirectionVector[Direction.UpLeft].y) : this.getSquare(targetSquare.x + DirectionVector[Direction.DownLeft].x, targetSquare.y + DirectionVector[Direction.DownLeft].y);
+             if (frontLeftSquare && frontLeftSquare.piece && frontLeftSquare.piece.pieceColor != targetSquare.piece.pieceColor) validSquares.push(frontLeftSquare);
+             const frontRightSquare = targetSquare.piece.pieceColor == PieceColor.Dark ? this.getSquare(targetSquare.x + DirectionVector[Direction.UpRight].x, targetSquare.y + DirectionVector[Direction.UpRight].y) : this.getSquare(targetSquare.x + DirectionVector[Direction.DownRight].x, targetSquare.y + DirectionVector[Direction.DownRight].y);
+             if (frontRightSquare && frontRightSquare.piece && frontRightSquare.piece.pieceColor != targetSquare.piece.pieceColor) validSquares.push(frontRightSquare);
+
+            //Todo: En Passant
+            //Todo: Check Checking
+        }
+
+        return validSquares;
     }
 }
