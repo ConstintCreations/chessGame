@@ -27,9 +27,11 @@ export class Square {
 
 export class Board {
     squares: Square[];
+    selectedSquare: Square | null;
 
     constructor() {
         this.squares = [];
+        this.selectedSquare = null;
 
         for (let y = 0; y < 8; y++) {
             for (let x = 0; x < 8; x++) {
@@ -83,11 +85,39 @@ export class Board {
         return this.squares[index];
     }
 
+    getSquare(x:number, y:number):Square | null {
+        if (x >= 0 || x < 8 || y >= 0 || y < 8) return this.getSquareByIndex(8*y + x);
+        return null;
+    }
+
     getSquareByIndexBackwards(index:number): Square | null {
         index = Math.round(index);
         if (index >= 64) return null;
         const x = index%8;
         const y = (64-(8*Math.floor(index/8)))-8;
         return this.squares[x+y];
+    }
+
+    selectSquare(square: Square) {
+        this.selectedSquare = square;
+    }
+
+    clearSelectedSquare() {
+        this.selectedSquare = null;
+    }
+
+    movePieceFromSelectedSquareTo(targetSquare: Square | null):boolean {
+        if (!targetSquare) return false;
+        if (this.selectedSquare?.piece && this.selectedSquare?.piece.pieceColor == targetSquare?.piece?.pieceColor) {
+            return false;
+        }
+
+        const selectedPiece = this.selectedSquare?.piece;
+        
+        if (!this.selectedSquare || !selectedPiece) return false;
+        targetSquare.piece = selectedPiece;
+        this.selectedSquare.piece = null;
+
+        return true;
     }
 }
