@@ -67,7 +67,7 @@ export enum PieceColor {
 }
 
 export class Piece {
-    constructor (public pieceType: PieceType, public pieceColor: PieceColor, public validSquares: Square[] | null, public hasMoved: boolean) {
+    constructor (public pieceType: PieceType, public pieceColor: PieceColor, public validSquares: Square[] | null, public hasMoved: boolean, public canEnPassant: boolean) {
         if (validSquares == null && pieceType) {
             validSquares = [];
         }
@@ -120,7 +120,7 @@ export class Board {
                 }
 
                 if (pieceType && pieceColor) {
-                    piece = new Piece(pieceType, pieceColor, null, false);
+                    piece = new Piece(pieceType, pieceColor, null, false, false);
                 }
 
                 this.squares.push(new Square(x, y, piece, (x+y)%2 == 1 ? SquareColor.Light : SquareColor.Dark));
@@ -148,6 +148,7 @@ export class Board {
     }
 
     selectSquare(square: Square) {
+        this.clearAllValidSquares();
         if (square.piece && square.piece.pieceColor == this.turn) {
             square.piece.validSquares = this.getValidSquares(square);
         }
@@ -186,18 +187,48 @@ export class Board {
         targetSquare.piece = selectedPiece;
         this.selectedSquare.piece = null;
 
-        targetSquare.piece.hasMoved = true;
-        targetSquare.piece.validSquares = null;
-
-        this.checkIfPromoting(targetSquare);
-
         if (this.turn == PieceColor.Light) {
             this.turn = PieceColor.Dark;
         } else {
             this.turn = PieceColor.Light;
         }
 
+        if (targetSquare.piece.pieceType == PieceType.Pawn) {
+            const behindSquare = targetSquare.piece.pieceColor == PieceColor.Dark ? this.getSquare(targetSquare.x + DirectionVector[Direction.Down].x, targetSquare.y + DirectionVector[Direction.Down].y) : this.getSquare(targetSquare.x + DirectionVector[Direction.Up].x, targetSquare.y + DirectionVector[Direction.Up].y);
+            console.log("BEHINDSQUARE", behindSquare);
+            if (behindSquare && behindSquare.piece && behindSquare.piece.pieceColor != targetSquare.piece.pieceColor && behindSquare.piece.pieceType == PieceType.Pawn && behindSquare.piece.canEnPassant) behindSquare.piece = null;
+        }
+
+        this.updateCanEnPassant();
+
+        if (!targetSquare.piece.hasMoved) {
+            if (targetSquare.y == 3 && targetSquare.piece.pieceColor == PieceColor.Light) {
+                targetSquare.piece.canEnPassant = true;
+            } else if (targetSquare.y == 4 && targetSquare.piece.pieceColor == PieceColor.Dark) {
+                targetSquare.piece.canEnPassant = true;
+            }
+        }
+
+        targetSquare.piece.hasMoved = true;
+        targetSquare.piece.validSquares = null;
+
+        this.checkIfPromoting(targetSquare);
+
         return true;
+    }
+
+    updateCanEnPassant() {
+        for (const square of this.squares) {
+            if (!square.piece) continue;
+            if (square.piece.pieceColor == this.turn) square.piece.canEnPassant = false;
+        }
+    }
+
+    clearAllValidSquares() {
+        for (const square of this.squares) {
+            if (!square.piece) continue;
+            square.piece.validSquares = null;
+        }
     }
 
     checkIfPromoting(square: Square) {
@@ -266,11 +297,14 @@ export class Board {
                 if (targetSquare.piece.hasMoved == false && doubleFrontSquare && doubleFrontSquare.piece == null) validSquares.push(doubleFrontSquare);
             }
              const frontLeftSquare = targetSquare.piece.pieceColor == PieceColor.Dark ? this.getSquare(targetSquare.x + DirectionVector[Direction.UpLeft].x, targetSquare.y + DirectionVector[Direction.UpLeft].y) : this.getSquare(targetSquare.x + DirectionVector[Direction.DownLeft].x, targetSquare.y + DirectionVector[Direction.DownLeft].y);
-             if (frontLeftSquare && frontLeftSquare.piece && frontLeftSquare.piece.pieceColor != targetSquare.piece.pieceColor) validSquares.push(frontLeftSquare);
+             if (frontLeftSquare && frontLeftSquare.piece && frontLeftSquare.piece.pieceColor != targetSquare.piece.pieceColor) {validSquares.push(frontLeftSquare)};
              const frontRightSquare = targetSquare.piece.pieceColor == PieceColor.Dark ? this.getSquare(targetSquare.x + DirectionVector[Direction.UpRight].x, targetSquare.y + DirectionVector[Direction.UpRight].y) : this.getSquare(targetSquare.x + DirectionVector[Direction.DownRight].x, targetSquare.y + DirectionVector[Direction.DownRight].y);
              if (frontRightSquare && frontRightSquare.piece && frontRightSquare.piece.pieceColor != targetSquare.piece.pieceColor) validSquares.push(frontRightSquare);
 
-            //Todo: En Passant
+            const leftSquare = this.getSquare(targetSquare.x + DirectionVector[Direction.Left].x, targetSquare.y + DirectionVector[Direction.Left].y);
+            if (leftSquare && leftSquare.piece && leftSquare.piece.pieceColor != targetSquare.piece.pieceColor && leftSquare.piece.canEnPassant && frontLeftSquare) validSquares.push(frontLeftSquare);
+            const rightSquare = this.getSquare(targetSquare.x + DirectionVector[Direction.Right].x, targetSquare.y + DirectionVector[Direction.Right].y);
+            if (rightSquare && rightSquare.piece && rightSquare.piece.pieceColor != targetSquare.piece.pieceColor && rightSquare.piece.canEnPassant && frontRightSquare) validSquares.push(frontRightSquare);
 
         } else if (targetSquare.piece.pieceType == PieceType.King) {
             for (const direction of AllDirections) {
