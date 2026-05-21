@@ -43,7 +43,18 @@ export const DirectionVector: Record<Direction, Position> = {
     [Direction.Down]: {x:0, y:1},
     [Direction.DownLeft]: {x:-1, y:1},
     [Direction.DownRight]: {x:1, y:1},
-} 
+}
+
+export const KnightDirectionVector: Record<Direction, Position> = {
+    [Direction.Up]: {x:1, y:-2},
+    [Direction.UpLeft]: {x:-1, y:-2},
+    [Direction.UpRight]: {x:2, y:-1},
+    [Direction.Left]: {x:-2, y:-1},
+    [Direction.Right]: {x:2, y:1},
+    [Direction.Down]: {x:-2, y:1},
+    [Direction.DownLeft]: {x:-1, y:2},
+    [Direction.DownRight]: {x:1, y:2},
+}
 
 export enum SquareColor {
     Light = "Light",
@@ -257,6 +268,13 @@ export class Board {
                         validSquares.push(square);
                     }
                 }
+            }
+        }else if (targetSquare.piece.pieceType == PieceType.Knight) {
+            for (const direction of AllDirections) {
+                const toSquare = this.getSquare(targetSquare.x + KnightDirectionVector[direction].x, targetSquare.y + KnightDirectionVector[direction].y);
+                console.log(toSquare);
+                if (!toSquare || (toSquare?.piece && toSquare.piece.pieceColor == targetSquare.piece.pieceColor)) continue;
+                validSquares.push(toSquare);
             }
         } else {
             for (const square of this.squares) {
