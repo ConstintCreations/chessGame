@@ -240,6 +240,24 @@ export class Board {
                     }
                 }
             }
+        } else if (targetSquare.piece.pieceType == PieceType.Bishop) {
+            for (const direction of [Direction.DownLeft, Direction.DownRight, Direction.UpLeft, Direction.UpRight]) {
+                const squaresInDirections = this.getSquaresInDirectionUntilSameColor(targetSquare, direction);
+                if (squaresInDirections) {
+                    for (const square of squaresInDirections) {
+                        validSquares.push(square);
+                    }
+                }
+            }
+        } else if (targetSquare.piece.pieceType == PieceType.Rook) {
+            for (const direction of [Direction.Up, Direction.Down, Direction.Left, Direction.Right]) {
+                const squaresInDirections = this.getSquaresInDirectionUntilSameColor(targetSquare, direction);
+                if (squaresInDirections) {
+                    for (const square of squaresInDirections) {
+                        validSquares.push(square);
+                    }
+                }
+            }
         } else {
             for (const square of this.squares) {
                 validSquares.push(square);

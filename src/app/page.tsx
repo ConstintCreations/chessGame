@@ -35,7 +35,6 @@ export default function Home() {
 
   function isSquareInValidSquares(square: Square): boolean {
     if (!board.selectedSquare || !board.selectedSquare.piece || !board.selectedSquare.piece.validSquares) return false;
-      console.log(board.selectedSquare.piece.validSquares)  
       for (const validSquare of board.selectedSquare.piece.validSquares) {
         if (square == validSquare) {    
           return true;
