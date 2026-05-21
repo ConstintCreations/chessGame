@@ -44,7 +44,7 @@ export default function Home() {
     }
 
   return (
-    <div className ="bg-zinc-600 w-[100svw] h-[100svh] overflow-none grid place-items-center">
+    <div className ="relative bg-zinc-600 w-[100svw] h-[100svh] overflow-none grid place-items-center">
       <div className="grid gap-0" style={{ gridTemplateColumns: "repeat(8, 60px)", gridTemplateRows: "repeat(8, 60px)" }}>
 
         {Array.from({ length: 64 }).map((_, index) => (
@@ -54,6 +54,21 @@ export default function Home() {
         ))}
         
       </div>
+      {/*
+      <div className="absolute bg-green-700/60 flex-row flex gap-2 border-green-600 border-[5px] rounded-xl p-2">
+          <button className="w-[60px] h-[60px]"><img src="./queen-light.png"></img></button>
+          <button className="w-[60px] h-[60px]"><img src="./knight-light.png"></img></button>
+          <button className="w-[60px] h-[60px]"><img src="./bishop-light.png"></img></button>
+          <button className="w-[60px] h-[60px]"><img src="./rook-light.png"></img></button>
+
+          
+          <button className="w-[60px] h-[60px]"><img src="./queen-dark.png"></img></button>
+          <button className="w-[60px] h-[60px]"><img src="./knight-dark.png"></img></button>
+          <button className="w-[60px] h-[60px]"><img src="./bishop-dark.png"></img></button>
+          <button className="w-[60px] h-[60px]"><img src="./rook-dark.png"></img></button>
+          
+      </div>
+      */}
     </div>
   );
 }
