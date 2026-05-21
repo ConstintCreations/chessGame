@@ -23,6 +23,17 @@ export enum Direction {
     UpRight = "UpRight"
 }
 
+export const AllDirections: Direction[] = [
+    Direction.Up,
+    Direction.Down,
+    Direction.Left,
+    Direction.Right,
+    Direction.DownLeft,
+    Direction.DownRight,
+    Direction.UpLeft,
+    Direction.UpRight
+]
+
 export const DirectionVector: Record<Direction, Position> = {
     [Direction.Up]: {x:0, y:-1},
     [Direction.UpLeft]: {x:-1, y:-1},
@@ -163,11 +174,23 @@ export class Board {
         return true;
     }
 
+    getSquareInDirection(fromSquare: Square, direction: Direction): Square | null {
+        const targetSquare = this.getSquare(fromSquare.x + DirectionVector[direction].x, fromSquare.y + DirectionVector[direction].y);
+
+        if (!targetSquare) return null;
+
+        return targetSquare;
+    }
+
+    getSquaresInDirectionUntilSameColor(fromSquare: Square, direction: Direction): Square[] | null {
+        return null;
+    }
+
     getValidSquares(targetSquare: Square): Square[] | null { 
         if (!targetSquare || !targetSquare.piece) return null;
         const validSquares:Square[] = [];
 
-        if(targetSquare.piece.pieceType == PieceType.Pawn) {
+        if (targetSquare.piece.pieceType == PieceType.Pawn) {
              const frontSquare = targetSquare.piece.pieceColor == PieceColor.Dark ? this.getSquare(targetSquare.x + DirectionVector[Direction.Up].x, targetSquare.y + DirectionVector[Direction.Up].y) : this.getSquare(targetSquare.x + DirectionVector[Direction.Down].x, targetSquare.y + DirectionVector[Direction.Down].y);
              if (frontSquare && frontSquare.piece == null) {
                 validSquares.push(frontSquare);
@@ -180,12 +203,20 @@ export class Board {
              if (frontRightSquare && frontRightSquare.piece && frontRightSquare.piece.pieceColor != targetSquare.piece.pieceColor) validSquares.push(frontRightSquare);
 
             //Todo: En Passant
-            //Todo: Check Checking
+
+        } else if (targetSquare.piece.pieceType == PieceType.King) {
+            for (const direction of AllDirections) {
+                const squareInDirection = this.getSquareInDirection(targetSquare, direction);
+                if (!squareInDirection || (squareInDirection?.piece && squareInDirection.piece.pieceColor == targetSquare.piece.pieceColor)) continue;
+                validSquares.push(squareInDirection);
+            }
         } else {
             for (const square of this.squares) {
                 validSquares.push(square);
             }
         }
+
+        // Todo: Check Checking
 
         return validSquares;
     }
