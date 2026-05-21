@@ -7,6 +7,7 @@ export default function Home() {
   const [board, setBoard] = useState<Board>(new Board);
 
   function handleSquareClick(e:any, index:number) {
+    if (board.promoting) return;
     console.log("click: ", board.getSquareByIndexBackwards(index));
     if (board.selectedSquare) {
       if (board.selectedSquare == board.getSquareByIndexBackwards(index)) {
@@ -48,27 +49,21 @@ export default function Home() {
       <div className="grid gap-0" style={{ gridTemplateColumns: "repeat(8, 60px)", gridTemplateRows: "repeat(8, 60px)" }}>
 
         {Array.from({ length: 64 }).map((_, index) => (
-          <button key={index} onClick={(e) => {handleSquareClick(e, index)}} className={`w-[60px] h-[60px] grid place-items-center font-bold ${board.selectedSquare && board.getSquareByIndexBackwards(index) && board.selectedSquare == board.getSquareByIndexBackwards(index) ? "bg-orange-400" : isSquareInValidSquares(board.getSquareByIndexBackwards(index)!) ? "bg-blue-400" : board.getSquareByIndexBackwards(index)?.color == SquareColor.Light ? "bg-white text-black" : "bg-green-700 text-white" }`}>
+          <button key={index} onClick={(e) => {handleSquareClick(e, index)}} className={`cursor-pointer w-[60px] h-[60px] grid place-items-center font-bold ${board.selectedSquare && board.getSquareByIndexBackwards(index) && board.selectedSquare == board.getSquareByIndexBackwards(index) ? "bg-orange-400" : isSquareInValidSquares(board.getSquareByIndexBackwards(index)!) ? "bg-blue-400" : board.getSquareByIndexBackwards(index)?.color == SquareColor.Light ? "bg-white text-black" : "bg-green-700 text-white" }`}>
             {!board.getSquareByIndexBackwards(index)?.piece ? "" : <img src={`./${board.getSquareByIndexBackwards(index)?.piece?.pieceType.toLowerCase()}-${board.getSquareByIndexBackwards(index)?.piece?.pieceColor.toLowerCase()}.png`}></img>}
           </button>
         ))}
         
       </div>
-      {/*
+      { board.promoting ? 
       <div className="absolute bg-green-700/60 flex-row flex gap-2 border-green-600 border-[5px] rounded-xl p-2">
-          <button className="w-[60px] h-[60px]"><img src="./queen-light.png"></img></button>
-          <button className="w-[60px] h-[60px]"><img src="./knight-light.png"></img></button>
-          <button className="w-[60px] h-[60px]"><img src="./bishop-light.png"></img></button>
-          <button className="w-[60px] h-[60px]"><img src="./rook-light.png"></img></button>
-
-          
-          <button className="w-[60px] h-[60px]"><img src="./queen-dark.png"></img></button>
-          <button className="w-[60px] h-[60px]"><img src="./knight-dark.png"></img></button>
-          <button className="w-[60px] h-[60px]"><img src="./bishop-dark.png"></img></button>
-          <button className="w-[60px] h-[60px]"><img src="./rook-dark.png"></img></button>
-          
+          <button onClick={(e) => {board.promoteToPiece(PieceType.Queen); setBoard(Object.assign(new Board(), board));}} className="cursor-pointer w-[60px] h-[60px] rounded-xl hover:bg-white/50"><img src={`./queen-${board.promoting!.piece!.pieceColor.toLowerCase()}.png`}></img></button>
+          <button onClick={(e) => {board.promoteToPiece(PieceType.Knight); setBoard(Object.assign(new Board(), board));}} className="cursor-pointer w-[60px] h-[60px] rounded-xl hover:bg-white/50"><img src={`./knight-${board.promoting!.piece!.pieceColor.toLowerCase()}.png`}></img></button>
+          <button onClick={(e) => {board.promoteToPiece(PieceType.Bishop); setBoard(Object.assign(new Board(), board));}} className="cursor-pointer w-[60px] h-[60px] rounded-xl hover:bg-white/50"><img src={`./bishop-${board.promoting!.piece!.pieceColor.toLowerCase()}.png`}></img></button>
+          <button onClick={(e) => {board.promoteToPiece(PieceType.Rook); setBoard(Object.assign(new Board(), board));}} className="cursor-pointer w-[60px] h-[60px] rounded-xl hover:bg-white/50"><img src={`./rook-${board.promoting!.piece!.pieceColor.toLowerCase()}.png`}></img></button>
       </div>
-      */}
+      : ""
+      }
     </div>
   );
 }

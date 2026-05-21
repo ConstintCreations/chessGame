@@ -81,10 +81,12 @@ export class Square {
 export class Board {
     squares: Square[];
     selectedSquare: Square | null;
+    promoting: Square | null;
 
     constructor() {
         this.squares = [];
         this.selectedSquare = null;
+        this.promoting = null;
 
         for (let y = 0; y < 8; y++) {
             for (let x = 0; x < 8; x++) {
@@ -182,7 +184,30 @@ export class Board {
 
         targetSquare.piece.hasMoved = true;
 
+        this.checkIfPromoting(targetSquare);
+
         return true;
+    }
+
+    checkIfPromoting(square: Square) {
+        if (square.y == 0 || square.y == 7) {
+                const piece = square.piece!
+            if (piece.pieceType == PieceType.Pawn) {
+                if (piece.pieceColor == PieceColor.Dark) {
+                    if (square.y == 0) {
+                        this.promoting = square;
+                    }
+                } else if (square.y == 7) {
+                    this.promoting = square;
+                }
+            }
+        }
+    }
+
+    promoteToPiece(pieceType: PieceType) {
+        if (!this.promoting) return;
+        this.promoting.piece!.pieceType = pieceType;
+        this.promoting = null;
     }
 
     getSquareInDirection(fromSquare: Square, direction: Direction): Square | null {
