@@ -120,7 +120,7 @@ export class Board {
     }
 
     getSquare(x:number, y:number):Square | null {
-        if (x >= 0 || x < 8 || y >= 0 || y < 8) return this.getSquareByIndex(8*y + x);
+        if (x >= 0 && x < 8 && y >= 0 && y < 8) return this.getSquareByIndex(8*y + x);
         return null;
     }
 
@@ -186,7 +186,7 @@ export class Board {
         if (!fromSquare.piece) return null;
         let squares:Square[] = [];
         let targetSquare = this.getSquare(fromSquare.x + DirectionVector[direction].x, fromSquare.y + DirectionVector[direction].y);
-        while(targetSquare && (!targetSquare.piece || targetSquare.piece.pieceType != fromSquare.piece.pieceType)) {
+        while(targetSquare && (!targetSquare.piece || targetSquare.piece.pieceColor != fromSquare.piece.pieceColor)) {
             
             squares.push(targetSquare);
 
