@@ -183,7 +183,28 @@ export class Board {
     }
 
     getSquaresInDirectionUntilSameColor(fromSquare: Square, direction: Direction): Square[] | null {
-        return null;
+        if (!fromSquare.piece) return null;
+        let squares:Square[] = [];
+        let targetSquare = this.getSquare(fromSquare.x + DirectionVector[direction].x, fromSquare.y + DirectionVector[direction].y);
+        while(targetSquare && (!targetSquare.piece || targetSquare.piece.pieceType != fromSquare.piece.pieceType)) {
+            
+            squares.push(targetSquare);
+
+            console.log(targetSquare);
+            
+            if (targetSquare.piece) {
+                
+                return squares;
+            }
+
+            targetSquare = this.getSquare(targetSquare.x + DirectionVector[direction].x, targetSquare.y + DirectionVector[direction].y);
+        }
+
+        if (squares.length > 0) {
+            return squares;
+        } else {
+            return null;
+        }
     }
 
     getValidSquares(targetSquare: Square): Square[] | null { 
@@ -209,6 +230,15 @@ export class Board {
                 const squareInDirection = this.getSquareInDirection(targetSquare, direction);
                 if (!squareInDirection || (squareInDirection?.piece && squareInDirection.piece.pieceColor == targetSquare.piece.pieceColor)) continue;
                 validSquares.push(squareInDirection);
+            }
+        } else if (targetSquare.piece.pieceType == PieceType.Queen) {
+            for (const direction of AllDirections) {
+                const squaresInDirections = this.getSquaresInDirectionUntilSameColor(targetSquare, direction);
+                if (squaresInDirections) {
+                    for (const square of squaresInDirections) {
+                        validSquares.push(square);
+                    }
+                }
             }
         } else {
             for (const square of this.squares) {
