@@ -1,0 +1,5 @@
+Castling
+Stalemate 
+50-move rule
+threefold repetition
+insufficient material
