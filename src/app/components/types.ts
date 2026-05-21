@@ -287,7 +287,7 @@ export class Board {
 
     getValidSquares(targetSquare: Square): Square[] | null { 
         if (!targetSquare || !targetSquare.piece) return null;
-        const validSquares:Square[] = [];
+        let validSquares:Square[] = [];
 
         if (targetSquare.piece.pieceType == PieceType.Pawn) {
              const frontSquare = targetSquare.piece.pieceColor == PieceColor.Dark ? this.getSquare(targetSquare.x + DirectionVector[Direction.Up].x, targetSquare.y + DirectionVector[Direction.Up].y) : this.getSquare(targetSquare.x + DirectionVector[Direction.Down].x, targetSquare.y + DirectionVector[Direction.Down].y);
@@ -310,7 +310,14 @@ export class Board {
             for (const direction of AllDirections) {
                 const squareInDirection = this.getSquareInDirection(targetSquare, direction);
                 if (!squareInDirection || (squareInDirection?.piece && squareInDirection.piece.pieceColor == targetSquare.piece.pieceColor)) continue;
-                validSquares.push(squareInDirection);
+                let kingInRange = false;
+                for (const secondDirection of AllDirections) {
+                    const squareInSecondDirection = this.getSquareInDirection(squareInDirection, secondDirection);
+                    if (squareInSecondDirection?.piece?.pieceType == PieceType.King && squareInSecondDirection?.piece?.pieceColor != targetSquare.piece.pieceColor) {
+                        kingInRange = true;
+                    }
+                }
+                if (!kingInRange) validSquares.push(squareInDirection);
             }
         } else if (targetSquare.piece.pieceType == PieceType.Queen) {
             for (const direction of AllDirections) {
@@ -352,8 +359,47 @@ export class Board {
             }
         }
 
+        validSquares = validSquares.filter(square => square.piece?.pieceType != PieceType.King)
+
         // Todo: Check Checking
 
         return validSquares;
+    }
+
+    getKing(color: PieceColor) {
+        for (const square of this.squares) {
+            if (square.piece?.pieceType == PieceType.King && square.piece.pieceColor == color) return square;
+        }
+    }
+
+    isKingInCheck(color: PieceColor, board: Square[] = this.squares) {
+        const kingSquare = this.getKing(color);
+        for (const square of this.squares) {
+            if (square.piece?.pieceColor != color) {
+                switch (square.piece?.pieceType) {
+                    case undefined: {
+                        continue;
+                    };
+                    case PieceType.King: {
+                        continue;
+                    };
+                    case PieceType.Bishop: {
+                        continue;
+                    };
+                    case PieceType.Bishop: {
+                        continue;
+                    };
+                    case PieceType.Bishop: {
+                        continue;
+                    };
+                    case PieceType.Bishop: {
+                        continue;
+                    };
+                    case PieceType.Bishop: {
+                        continue;
+                    };
+                }
+            }
+        }
     }
 }
