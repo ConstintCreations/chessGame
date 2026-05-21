@@ -82,11 +82,13 @@ export class Board {
     squares: Square[];
     selectedSquare: Square | null;
     promoting: Square | null;
+    turn: PieceColor;
 
     constructor() {
         this.squares = [];
         this.selectedSquare = null;
         this.promoting = null;
+        this.turn = PieceColor.Light;
 
         for (let y = 0; y < 8; y++) {
             for (let x = 0; x < 8; x++) {
@@ -146,7 +148,7 @@ export class Board {
     }
 
     selectSquare(square: Square) {
-        if (square.piece) {
+        if (square.piece && square.piece.pieceColor == this.turn) {
             square.piece.validSquares = this.getValidSquares(square);
         }
         this.selectedSquare = square;
@@ -166,6 +168,8 @@ export class Board {
         
         if (!this.selectedSquare || !selectedPiece) return false;
 
+        if (selectedPiece.pieceColor != this.turn) return false;
+
         if (validateMovement) {
             if (selectedPiece.validSquares) {
                 let foundTargetSquare = false;
@@ -183,8 +187,15 @@ export class Board {
         this.selectedSquare.piece = null;
 
         targetSquare.piece.hasMoved = true;
+        targetSquare.piece.validSquares = null;
 
         this.checkIfPromoting(targetSquare);
+
+        if (this.turn == PieceColor.Light) {
+            this.turn = PieceColor.Dark;
+        } else {
+            this.turn = PieceColor.Light;
+        }
 
         return true;
     }
