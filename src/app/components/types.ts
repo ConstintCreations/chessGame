@@ -199,7 +199,7 @@ export class Board {
 
         if (targetSquare.piece.pieceType == PieceType.Pawn) {
             const behindSquare = targetSquare.piece.pieceColor == PieceColor.Dark ? this.getSquare(targetSquare.x + DirectionVector[Direction.Down].x, targetSquare.y + DirectionVector[Direction.Down].y) : this.getSquare(targetSquare.x + DirectionVector[Direction.Up].x, targetSquare.y + DirectionVector[Direction.Up].y);
-            console.log("BEHINDSQUARE", behindSquare);
+            //console.log("BEHINDSQUARE", behindSquare);
             if (behindSquare && behindSquare.piece && behindSquare.piece.pieceColor != targetSquare.piece.pieceColor && behindSquare.piece.pieceType == PieceType.Pawn && behindSquare.piece.canEnPassant) behindSquare.piece = null;
         }
 
@@ -274,7 +274,7 @@ export class Board {
             
             squares.push(targetSquare);
 
-            console.log(targetSquare);
+            //console.log(targetSquare);
             
             if (targetSquare.piece) {
                 
@@ -355,7 +355,7 @@ export class Board {
         }else if (targetSquare.piece.pieceType == PieceType.Knight) {
             for (const direction of AllDirections) {
                 const toSquare = this.getSquare(targetSquare.x + KnightDirectionVector[direction].x, targetSquare.y + KnightDirectionVector[direction].y);
-                console.log(toSquare);
+                //console.log(toSquare);
                 if (!toSquare || (toSquare?.piece && toSquare.piece.pieceColor == targetSquare.piece.pieceColor)) continue;
                 validSquares.push(toSquare);
             }
