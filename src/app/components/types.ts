@@ -83,12 +83,14 @@ export class Board {
     selectedSquare: Square | null;
     promoting: Square | null;
     turn: PieceColor;
+    gameOver: boolean;
 
     constructor() {
         this.squares = [];
         this.selectedSquare = null;
         this.promoting = null;
         this.turn = PieceColor.Light;
+        this.gameOver = false;
 
         for (let y = 0; y < 8; y++) {
             for (let x = 0; x < 8; x++) {
@@ -149,6 +151,7 @@ export class Board {
 
     selectSquare(square: Square) {
         this.clearAllValidSquares();
+        if (this.gameOver) return;
         if (square.piece && square.piece.pieceColor == this.turn) {
             square.piece.validSquares = this.getValidSquares(square);
         }
@@ -160,6 +163,7 @@ export class Board {
     }
 
     movePieceFromSelectedSquareTo(targetSquare: Square | null, validateMovement: boolean = true):boolean {
+        if (this.gameOver) return false;
         if (!targetSquare) return false;
         if (this.selectedSquare?.piece && this.selectedSquare?.piece.pieceColor == targetSquare?.piece?.pieceColor) {
             return false;
@@ -212,7 +216,9 @@ export class Board {
         targetSquare.piece.hasMoved = true;
         targetSquare.piece.validSquares = null;
 
-        this.checkIfPromoting(targetSquare);
+        if (validateMovement) this.simulateAllPossibleMoves();
+
+        if (!this.gameOver) this.checkIfPromoting(targetSquare);
 
         return true;
     }
@@ -285,7 +291,7 @@ export class Board {
         }
     }
 
-    getValidSquares(targetSquare: Square): Square[] | null { 
+    getValidSquares(targetSquare: Square, filterKing: boolean = true, simulateMoves: boolean = true): Square[] | null { 
         if (!targetSquare || !targetSquare.piece) return null;
         let validSquares:Square[] = [];
 
@@ -359,9 +365,19 @@ export class Board {
             }
         }
 
-        validSquares = validSquares.filter(square => square.piece?.pieceType != PieceType.King)
+        if (filterKing) {
+            validSquares = validSquares.filter(square => square.piece?.pieceType != PieceType.King);
+        }
 
-        // Todo: Check Checking
+        if (simulateMoves) {
+            const possibleMovesMap = this.simulateAllPossibleMoves();
+            const possibleMoves = possibleMovesMap?.get(targetSquare);
+            if (!possibleMoves) {
+                return null;
+            } else {
+                return possibleMoves;
+            }
+        }
 
         return validSquares;
     }
@@ -372,34 +388,77 @@ export class Board {
         }
     }
 
-    isKingInCheck(color: PieceColor, board: Square[] = this.squares) {
-        const kingSquare = this.getKing(color);
+    simulateAllPossibleMoves(): Map<Square, Square[] | null> | null {
+        const possibleMoves = new Map<Square, Square[] | null>();
+
+        let hasAMove = false;
+
         for (const square of this.squares) {
-            if (square.piece?.pieceColor != color) {
-                switch (square.piece?.pieceType) {
-                    case undefined: {
-                        continue;
-                    };
-                    case PieceType.King: {
-                        continue;
-                    };
-                    case PieceType.Bishop: {
-                        continue;
-                    };
-                    case PieceType.Bishop: {
-                        continue;
-                    };
-                    case PieceType.Bishop: {
-                        continue;
-                    };
-                    case PieceType.Bishop: {
-                        continue;
-                    };
-                    case PieceType.Bishop: {
-                        continue;
-                    };
+            const possibleSquares:Square[] = [];
+            if (square.piece?.pieceColor == this.turn) {
+                const validSquares = this.getValidSquares(square, true, false);
+                if (validSquares) {
+                    for (const validSquare of validSquares) {
+                        const clonedBoard = this.cloneBoard();
+                        clonedBoard.selectedSquare = clonedBoard.getSquare(square.x, square.y);
+                        const toSquare = clonedBoard.getSquare(validSquare.x, validSquare.y);
+                        clonedBoard.movePieceFromSelectedSquareTo(toSquare, false);
+                        const wasChecked = clonedBoard.isKingInCheck(this.turn);
+                        if (!wasChecked) {
+                            possibleSquares.push(validSquare)
+                            hasAMove = true;
+                        }
+                    }
+                }
+            }
+            if (possibleSquares.length > 0) {
+                possibleMoves.set(square, possibleSquares);
+            }
+        }
+
+        if (!hasAMove) {
+            this.gameOver = true;
+            return null;
+        } else {
+            return possibleMoves;
+        }        
+    }
+
+    isKingInCheck(color: PieceColor, board: Board = this) {
+        const kingSquare = board.getKing(color);
+        for (const square of board.squares) {
+            if (!square.piece || square.piece.pieceColor == color) continue;
+            
+            const validSquares = board.getValidSquares(square, false, false);
+
+            if (!validSquares) continue;
+
+            for (const validSquare of validSquares) {
+                if (validSquare == kingSquare) {
+                    return true;
                 }
             }
         }
+
+        return false;
+    }
+
+    cloneBoard(): Board {
+        const clonedBoard = new Board();
+
+        for (let i = 0; i < 64; i++) {
+            const oldSquare = this.squares[i];
+            const newSquare = clonedBoard.squares[i];
+
+            if (oldSquare.piece) {
+                newSquare.piece = new Piece(oldSquare.piece.pieceType, oldSquare.piece.pieceColor, null, oldSquare.piece.hasMoved, oldSquare.piece.canEnPassant)
+            } else {
+                newSquare.piece = null;
+            }
+
+        }
+
+        clonedBoard.turn = this.turn;
+        return clonedBoard;
     }
 }
