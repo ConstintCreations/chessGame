@@ -8,7 +8,7 @@ export default function Home() {
 
   function handleSquareClick(e:any, index:number) {
     if (board.promoting) return;
-    //console.log("click: ", board.getSquareByIndexBackwards(index));
+    console.log("click: ", board.getSquareByIndexBackwards(index));
     if (board.selectedSquare) {
       if (board.selectedSquare == board.getSquareByIndexBackwards(index)) {
         board.clearSelectedSquare();

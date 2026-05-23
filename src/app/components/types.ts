@@ -67,7 +67,7 @@ export enum PieceColor {
 }
 
 export class Piece {
-    constructor (public pieceType: PieceType, public pieceColor: PieceColor, public validSquares: Square[] | null, public hasMoved: boolean, public canEnPassant: boolean) {
+    constructor (public pieceType: PieceType, public pieceColor: PieceColor, public validSquares: Square[] | null, public hasMoved: boolean, public canEnPassant: boolean, public canCastleKingside: boolean, public canCastleQueenside: boolean) {
         if (validSquares == null && pieceType) {
             validSquares = [];
         }
@@ -124,7 +124,7 @@ export class Board {
                 }
 
                 if (pieceType && pieceColor) {
-                    piece = new Piece(pieceType, pieceColor, null, false, false);
+                    piece = new Piece(pieceType, pieceColor, null, false, false, false, false);
                 }
 
                 this.squares.push(new Square(x, y, piece, (x+y)%2 == 1 ? SquareColor.Light : SquareColor.Dark));
@@ -190,6 +190,29 @@ export class Board {
                 return false;
             }
         }
+
+        if (!this.selectedSquare.piece?.hasMoved && this.selectedSquare.piece?.pieceType == PieceType.King) {
+            if (this.selectedSquare.piece.canCastleKingside || this.selectedSquare.piece.canCastleQueenside) {
+
+                if ((targetSquare.x == 2 || targetSquare.x == 6) && (targetSquare.y == 0 || targetSquare.y == 7)) {
+
+                    let rookSquare = this.getSquare(7, targetSquare.y);
+                    let newRookSquare = this.getSquare(5, targetSquare.y);
+
+                    if (targetSquare.x == 2) {
+                        rookSquare = this.getSquare(0, targetSquare.y);
+                        newRookSquare = this.getSquare(3, targetSquare.y);
+                    }
+
+                    newRookSquare!.piece = rookSquare!.piece;
+                    rookSquare!.piece = null;
+
+                    this.selectedSquare.piece.canCastleKingside = false;
+                    this.selectedSquare.piece.canCastleQueenside = false;
+                }
+            }
+        }
+
         targetSquare.piece = selectedPiece;
         this.selectedSquare.piece = null;
 
@@ -327,6 +350,33 @@ export class Board {
                 }
                 if (!kingInRange) validSquares.push(squareInDirection);
             }
+
+            // Castling
+            if (!targetSquare.piece.hasMoved) {
+                const kingSideRook = this.turn == PieceColor.Dark ? this.getSquare(7, 7) : this.getSquare(7, 0);
+                const queenSideRook = this.turn == PieceColor.Dark ? this.getSquare(0, 7) : this.getSquare(0, 0);
+
+                if (kingSideRook?.piece?.pieceType == PieceType.Rook && !kingSideRook.piece.hasMoved) {
+                    const leftSquare = this.turn == PieceColor.Dark ? this.getSquare(5, 7) : this.getSquare(5, 0);
+                    const rightSquare = this.turn == PieceColor.Dark ? this.getSquare(6, 7) : this.getSquare(6, 0);
+                    if (!leftSquare!.piece && !rightSquare!.piece && !this.simulateAMove(targetSquare, leftSquare!) && !this.simulateAMove(targetSquare, rightSquare!)) {
+                        targetSquare.piece.canCastleKingside = true;
+                        validSquares.push(rightSquare!)
+                    }
+                }
+
+                if (queenSideRook?.piece?.pieceType == PieceType.Rook && !queenSideRook.piece.hasMoved) {
+                    const leftSquare = this.turn == PieceColor.Dark ? this.getSquare(1, 7) : this.getSquare(1, 0);
+                    const middleSquare = this.turn == PieceColor.Dark ? this.getSquare(2, 7) : this.getSquare(2, 0);
+                    const rightSquare = this.turn == PieceColor.Dark ? this.getSquare(3, 7) : this.getSquare(3, 0);
+                    if (!leftSquare!.piece && !middleSquare!.piece && !rightSquare!.piece && !this.simulateAMove(targetSquare, leftSquare!) && !this.simulateAMove(targetSquare, middleSquare!)&& !this.simulateAMove(targetSquare, rightSquare!)) {
+                        targetSquare.piece.canCastleQueenside = true;
+                        validSquares.push(middleSquare!)
+                    }
+                }
+            }
+
+
         } else if (targetSquare.piece.pieceType == PieceType.Queen) {
             for (const direction of AllDirections) {
                 const squaresInDirections = this.getSquaresInDirectionUntilSameColor(targetSquare, direction);
@@ -388,6 +438,14 @@ export class Board {
         for (const square of this.squares) {
             if (square.piece?.pieceType == PieceType.King && square.piece.pieceColor == color) return square;
         }
+    }
+
+    simulateAMove(fromSquare:Square, toSquare:Square): boolean {
+        const clonedBoard = this.cloneBoard();
+        clonedBoard.selectedSquare = clonedBoard.getSquare(fromSquare.x, fromSquare.y);
+        const toClonedSquare = clonedBoard.getSquare(toSquare.x, toSquare.y);
+        clonedBoard.movePieceFromSelectedSquareTo(toClonedSquare, false);
+        return clonedBoard.isKingInCheck(this.turn);
     }
 
     simulateAllPossibleMoves(): Map<Square, Square[] | null> | null {
@@ -456,7 +514,7 @@ export class Board {
             const newSquare = clonedBoard.squares[i];
 
             if (oldSquare.piece) {
-                newSquare.piece = new Piece(oldSquare.piece.pieceType, oldSquare.piece.pieceColor, null, oldSquare.piece.hasMoved, oldSquare.piece.canEnPassant)
+                newSquare.piece = new Piece(oldSquare.piece.pieceType, oldSquare.piece.pieceColor, null, oldSquare.piece.hasMoved, oldSquare.piece.canEnPassant, oldSquare.piece.canCastleKingside, oldSquare.piece.canCastleQueenside)
             } else {
                 newSquare.piece = null;
             }
