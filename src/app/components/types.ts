@@ -85,6 +85,7 @@ export class Board {
     turn: PieceColor;
     gameOver: boolean;
     checkmate: boolean;
+    turnsSincePawnOrCapture: number;
 
     constructor() {
         this.squares = [];
@@ -93,6 +94,7 @@ export class Board {
         this.turn = PieceColor.Light;
         this.gameOver = false;
         this.checkmate = false;
+        this.turnsSincePawnOrCapture = 0;
 
         for (let y = 0; y < 8; y++) {
             for (let x = 0; x < 8; x++) {
@@ -213,6 +215,12 @@ export class Board {
             }
         }
 
+        if (targetSquare.piece || this.selectedSquare.piece?.pieceType == PieceType.Pawn) {
+            this.turnsSincePawnOrCapture = 0;
+        } else {
+            this.turnsSincePawnOrCapture += 0.5;
+        }
+
         targetSquare.piece = selectedPiece;
         this.selectedSquare.piece = null;
 
@@ -242,6 +250,10 @@ export class Board {
         targetSquare.piece.validSquares = null;
 
         if (validateMovement) this.simulateAllPossibleMoves();
+
+        if (!this.gameOver && this.turnsSincePawnOrCapture >= 50) {
+            this.gameOver = true;
+        }
 
         if (!this.gameOver) this.checkIfPromoting(targetSquare);
 
