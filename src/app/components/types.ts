@@ -352,7 +352,7 @@ export class Board {
             }
 
             // Castling
-            if (!targetSquare.piece.hasMoved) {
+            if (!targetSquare.piece.hasMoved && !this.isKingInCheck(this.turn)) {
                 const kingSideRook = this.turn == PieceColor.Dark ? this.getSquare(7, 7) : this.getSquare(7, 0);
                 const queenSideRook = this.turn == PieceColor.Dark ? this.getSquare(0, 7) : this.getSquare(0, 0);
 
@@ -491,6 +491,8 @@ export class Board {
         const kingSquare = board.getKing(color);
         for (const square of board.squares) {
             if (!square.piece || square.piece.pieceColor == color) continue;
+
+            if (square.piece.pieceType == PieceType.King) continue;
             
             const validSquares = board.getValidSquares(square, false, false);
 
