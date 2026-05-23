@@ -78,6 +78,10 @@ export class Square {
     constructor(public x: number, public y: number, public piece: Piece | null, public color: SquareColor) {}
 }
 
+export class SimpleSquare {
+    constructor(public x: number, public y: number, public pieceType: PieceType | null, public pieceColor: PieceColor | null) {}
+}
+
 export class Board {
     squares: Square[];
     selectedSquare: Square | null;
@@ -86,6 +90,8 @@ export class Board {
     gameOver: boolean;
     checkmate: boolean;
     turnsSincePawnOrCapture: number;
+    pastBoardStates: Map<string, number>;
+    drawn: boolean;
 
     constructor() {
         this.squares = [];
@@ -95,6 +101,8 @@ export class Board {
         this.gameOver = false;
         this.checkmate = false;
         this.turnsSincePawnOrCapture = 0;
+        this.pastBoardStates = new Map<string, number>();
+        this.drawn = false;
 
         for (let y = 0; y < 8; y++) {
             for (let x = 0; x < 8; x++) {
@@ -131,6 +139,43 @@ export class Board {
 
                 this.squares.push(new Square(x, y, piece, (x+y)%2 == 1 ? SquareColor.Light : SquareColor.Dark));
             }
+        }
+
+        this.addSimpleBoardToPastStates();
+    }
+
+    makeSimpleBoardFromSquares() {
+        let simpleSquareString = "";
+
+        for (const square of this.squares) {
+            const squareX = square.x;
+            const squareY = square.y;
+            let squarePieceType = null;
+            let squarePieceColor = null;
+
+            if (square.piece) {
+                squarePieceType = square.piece.pieceType;
+                squarePieceColor = square.piece.pieceColor;
+            }
+
+            simpleSquareString += squareX.toString() + squareY.toString() + (squarePieceType ? squarePieceType!.toString() : "") + (squarePieceColor ? squarePieceColor!.toString() : "");
+        }
+
+        return simpleSquareString;
+    }
+
+    addSimpleBoardToPastStates() {
+        const simpleBoard = this.makeSimpleBoardFromSquares();
+        let count = 1;
+        if (this.pastBoardStates.has(simpleBoard)) {
+            count = this.pastBoardStates.get(simpleBoard)! + 1;
+        }
+
+        this.pastBoardStates.set(simpleBoard, count);
+
+        if (!this.gameOver && count == 3) {
+            this.gameOver = true;
+            this.drawn = true;
         }
     }
 
@@ -253,13 +298,19 @@ export class Board {
 
         if (!this.gameOver && this.turnsSincePawnOrCapture >= 50) {
             this.gameOver = true;
+            this.drawn = true;
         }
 
         if (!this.gameOver) this.checkIfPromoting(targetSquare);
 
         if (!this.gameOver && !this.getIsSufficientMaterial()) {
             this.gameOver = true;
+            this.drawn = true;
         }
+
+        this.addSimpleBoardToPastStates();
+
+        console.log(this.pastBoardStates);
 
         return true;
     }
