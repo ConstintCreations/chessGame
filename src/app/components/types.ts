@@ -257,6 +257,45 @@ export class Board {
 
         if (!this.gameOver) this.checkIfPromoting(targetSquare);
 
+        if (!this.gameOver && !this.getIsSufficientMaterial()) {
+            this.gameOver = true;
+        }
+
+        return true;
+    }
+
+    getPiecesByColor(color: PieceColor): Square[] {
+        let pieces:Square[] = [];
+        for (const square of this.squares) {
+            if (square.piece && square.piece.pieceColor == color) pieces.push(square);
+        }
+        return pieces;
+    }
+
+    getIsSufficientMaterial(): boolean { // In accordance with chess.com: https://support.chess.com/en/articles/8705277-what-does-insufficient-mating-material-mean
+        let lightPieceSquares = this.getPiecesByColor(PieceColor.Light);
+        let darkPieceSquares = this.getPiecesByColor(PieceColor.Dark);
+        lightPieceSquares = lightPieceSquares.filter(square => square.piece!.pieceType != PieceType.King);
+        darkPieceSquares = darkPieceSquares.filter(square => square.piece!.pieceType != PieceType.King);
+        const lightPieceCount = lightPieceSquares.length;
+        const darkPieceCount = darkPieceSquares.length;
+
+        if (lightPieceCount > 2 || darkPieceCount > 2) {
+            return true;
+        }
+
+        if (lightPieceCount == 0 && darkPieceCount == 0) {
+            return false;
+        }
+
+        if ((darkPieceCount == 0 && lightPieceCount == 2 && lightPieceSquares.every(square => square.piece!.pieceType == PieceType.Knight)) || (lightPieceCount == 0 && darkPieceCount == 2 && darkPieceSquares.every(square => square.piece!.pieceType == PieceType.Knight))) {
+            return false;
+        }
+
+        if ((darkPieceCount == 0 || (darkPieceCount == 1 && (darkPieceSquares[0].piece!.pieceType == PieceType.Bishop || darkPieceSquares[0].piece!.pieceType == PieceType.Knight))) && (lightPieceCount == 0 || (lightPieceCount == 1 && (lightPieceSquares[0].piece!.pieceType == PieceType.Bishop || lightPieceSquares[0].piece!.pieceType == PieceType.Knight)))) {
+            return false;
+        }
+
         return true;
     }
 
