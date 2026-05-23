@@ -84,6 +84,7 @@ export class Board {
     promoting: Square | null;
     turn: PieceColor;
     gameOver: boolean;
+    checkmate: boolean;
 
     constructor() {
         this.squares = [];
@@ -91,6 +92,7 @@ export class Board {
         this.promoting = null;
         this.turn = PieceColor.Light;
         this.gameOver = false;
+        this.checkmate = false;
 
         for (let y = 0; y < 8; y++) {
             for (let x = 0; x < 8; x++) {
@@ -418,6 +420,9 @@ export class Board {
 
         if (!hasAMove) {
             this.gameOver = true;
+            if (this.isKingInCheck(this.turn)) {
+                this.checkmate = true;
+            }
             return null;
         } else {
             return possibleMoves;

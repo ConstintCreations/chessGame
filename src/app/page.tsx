@@ -68,7 +68,7 @@ export default function Home() {
       {board.gameOver ? 
       <div className="absolute bg-green-700/60 flex-col flex gap-2 items-center border-green-600 border-[5px] rounded-xl px-6 py-3">
           <h2 className="font-bold text-white text-3xl text-center">
-            Checkmate!
+            {board.checkmate ? "Checkmate!" : "Stalemate!"}
           </h2>
           <button onClick={(e) => {setBoard(new Board())}} className="cursor-pointer hover:bg-green-400 bg-green-500 py-2 w-[120px] rounded-xl font-bold text-white text-xl text-center">
             Play Again
